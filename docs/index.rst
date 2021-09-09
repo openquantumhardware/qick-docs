@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Sphinx Autodoc Tutorial documentation!
+Welcome to the QICK documentation!
 =================================================
 
-This example demonstrates how to generate documentation from your Python code using **Sphinx**.
+This website documents the Quantum Instrumentation Controller Kit software.
 
 Contents:
 
