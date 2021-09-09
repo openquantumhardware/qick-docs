@@ -6,7 +6,7 @@ fs_dac = 384*16
 fs_proc=384
 
 
-def freq2reg(f):
+def freq2reg(f="100"):
     B=32
     df = 2**B/fs_dac
     f_i = f*df

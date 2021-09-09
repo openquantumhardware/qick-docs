@@ -1,5 +1,5 @@
 from qsystem_2 import PfbSoc, freq2reg
-from slab.instruments import Instrument,InstrumentManager
+#from slab.instruments import Instrument,InstrumentManager
 
 class RFSocInstrument(Instrument):
     
