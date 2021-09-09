@@ -1,9 +1,15 @@
-# Example Sphinx Project
+QICK: Quantum Instrumentation Controller Kit
+===========================================
 
-This repository contains an example [Sphinx](http://www.sphinx-doc.org/en/stable/) project for my tutorial:
 
-[Autodocumenting your Python code with Sphinx - part 1]
-(http://romanvm.pythonanywhere.com/post/autodocumenting-your-python-code-sphinx-part-i-5/)
+**This repository contains the source files for the documentation of the Quantum Instrumentation Controller Kit software, generated via Sphinx and available on ReadTheDocs.**
+
+
+Documentation
+-------------
+
+The documentation for QICK is available at: https://qick-docs.readthedocs.io
+
 
 Documentation generated from this project: http://romanvm.github.io/sphinx_tutorial/
 
