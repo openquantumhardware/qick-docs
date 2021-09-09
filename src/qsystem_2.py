@@ -240,39 +240,56 @@ class AxisReadoutV2(SocIp):
         self.update()        
         
 class AxisAvgBuffer(SocIp):
-    # Registers.
-    # AVG_START_REG
-    # * 0 : Averager Disabled.
-    # * 1 : Averager Enabled (started by external trigger).
-    #
-    # AVG_ADDR_REG : start address to write results.
-    #
-    # AVG_LEN_REG : number of samples to be added.
-    #
-    # AVG_DR_START_REG
-    # * 0 : do not send any data.
-    # * 1 : send data using m0_axis.
-    #
-    # AVG_DR_ADDR_REG : start address to read data.
-    #
-    # AVG_DR_LEN_REG : number of samples to be read.
-    #
-    # BUF_START_REG
-    # * 0 : Buffer Disabled.
-    # * 1 : Buffer Enabled (started by external trigger).
-    #
-    # BUF_ADDR_REG : start address to write results.
-    #
-    # BUF_LEN_REG : number of samples to be buffered.
-    #
-    # BUF_DR_START_REG
-    # * 0 : do not send any data.
-    # * 1 : send data using m1_axis.
-    #
-    # BUF_DR_ADDR_REG : start address to read data.
-    #
-    # BUF_DR_LEN_REG : number of samples to be read.    
-    #
+	"""
+	AxisAvgBuffer class
+
+    Registers.
+    AVG_START_REG
+    * 0 : Averager Disabled.
+    * 1 : Averager Enabled (started by external trigger).
+    
+    AVG_ADDR_REG : start address to write results.
+    
+    AVG_LEN_REG : number of samples to be added.
+    
+    AVG_DR_START_REG
+    * 0 : do not send any data.
+    * 1 : send data using m0_axis.
+    
+    AVG_DR_ADDR_REG : start address to read data.
+    
+    AVG_DR_LEN_REG : number of samples to be read.
+    
+    BUF_START_REG
+    * 0 : Buffer Disabled.
+    * 1 : Buffer Enabled (started by external trigger).
+    
+    BUF_ADDR_REG : start address to write results.
+    
+    BUF_LEN_REG : number of samples to be buffered.
+    
+    BUF_DR_START_REG
+    * 0 : do not send any data.
+    * 1 : send data using m1_axis.
+    
+    BUF_DR_ADDR_REG : start address to read data.
+    
+    BUF_DR_LEN_REG : number of samples to be read.    
+
+    :param ip: IP address
+    :type ip: str
+    :param axi_dma_avg: dma block for average buffers
+    :type axi_dma_avg: str
+    :param switch_avg: switch block for average buffers
+    :type switch_avg: str
+    :param axi_dma_buf: dma block for raw buffers
+    :type axi_dma_buf: str
+    :param switch_buf: switch block for raw buffers
+    :type switch_buf: str
+    :param channel: readout channel selection
+    :type channel: int
+	"""
+    
     REGISTERS = {'avg_start_reg'    : 0, 
                  'avg_addr_reg'     : 1,
                  'avg_len_reg'      : 2,
@@ -317,16 +334,35 @@ class AxisAvgBuffer(SocIp):
         self.ch = channel
 
     def config(self,address=0,length=100):
+        """
+        Configure both average and raw buffers
+
+        :param addr: Start address of first capture
+        :type addr: int
+        :param length: window size
+        :type length: int
+        """
         # Configure averaging and buffering to the same address and length.
         self.config_avg(address=address,length=length)
         self.config_buf(address=address,length=length)
         
     def enable(self):
+        """
+        Enable both average and raw buffers
+        """
         # Enable both averager and buffer.
         self.enable_avg()
         self.enable_buf()
         
     def config_avg(self,address=0,length=100):
+        """
+        Configure average buffer data from average and buffering readout block
+
+        :param addr: Start address of first capture
+        :type addr: int
+        :param length: window size
+        :type length: int
+        """
         # Disable averaging.
         self.disable_avg()
         
@@ -335,6 +371,18 @@ class AxisAvgBuffer(SocIp):
         self.avg_len_reg = length
         
     def transfer_avg(self,buff,address=0,length=100):
+        """
+        Transfer average buffer data from average and buffering readout block
+
+        :param buff: DMA buffer to be used for transfer
+        :type buff: list
+        :param addr: starting reading address
+        :type addr: int
+        :param length: number of samples
+        :type length: int
+        :return: I,Q pairs
+        :rtype: list
+        """
         # Route switch to channel.
         self.switch_avg.sel(slv=self.ch)        
         
@@ -364,12 +412,26 @@ class AxisAvgBuffer(SocIp):
         return dataI,dataQ        
         
     def enable_avg(self):
+        """
+        Enable average buffer capture
+        """
         self.avg_start_reg = 1
         
     def disable_avg(self):
+        """
+        Disable average buffer capture
+        """
         self.avg_start_reg = 0    
         
     def config_buf(self,address=0,length=100):
+        """
+        Configure raw buffer data from average and buffering readout block
+
+        :param addr: Start address of first capture
+        :type addr: int
+        :param length: window size
+        :type length: int
+        """
         # Disable buffering.
         self.disable_buf()
         
@@ -378,6 +440,18 @@ class AxisAvgBuffer(SocIp):
         self.buf_len_reg = length    
         
     def transfer_buf(self,buff,address=0,length=100):
+        """
+        Transfer raw buffer data from average and buffering readout block
+
+        :param buff: DMA buffer to be used for transfer
+        :type buff: list
+        :param addr: starting reading address
+        :type addr: int
+        :param length: number of samples
+        :type length: int
+        :return: I,Q pairs
+        :rtype: list
+        """
         # Route switch to channel.
         self.switch_buf.sel(slv=self.ch)
         
@@ -409,9 +483,15 @@ class AxisAvgBuffer(SocIp):
         return dataI,dataQ
         
     def enable_buf(self):
+        """
+        Enable raw buffer capture
+        """
         self.buf_start_reg = 1
         
     def disable_buf(self):
+        """
+        Disable raw buffer capture
+        """
         self.buf_start_reg = 0         
         
 class AxisTProc64x32_x8(SocIp):
@@ -495,13 +575,24 @@ class AxisTProc64x32_x8(SocIp):
         self.dma = axi_dma 
         
     def start_src(self,src=0):
-        ''' TO DO, down to the end of this class '''
+        """
+        Sets the start source of tProc
+
+        :param src: start source
+        :type src: int
+        """
         self.start_src_reg = src
         
     def start(self):
+        """
+        Start tProc from register
+        """
         self.start_reg = 1
         
     def stop(self):
+        """
+        Stop tProc from register
+        """
         self.start_reg = 0
         
     def load_asm_program(self, prog, debug= False):
@@ -515,6 +606,14 @@ class AxisTProc64x32_x8(SocIp):
             self.mem.write(offset=4*(2*ii+1),value=dec_high)
 
     def load_program(self,prog="prog.asm",fmt="asm"):
+        """
+        Loads tProc program. If asm progam, it compiles first
+
+        :param prog: program file name
+        :type prog: string
+        :param fmt: file format
+        :type fmt: string
+        """
         # Binary file format.
         if fmt == "bin":
             # Read binary file from disk.
@@ -550,6 +649,16 @@ class AxisTProc64x32_x8(SocIp):
                 addr = addr + 4   
                 
     def single_read(self, addr):
+        """
+        Reads one sample of tProc data memory using AXI access
+
+        :param addr: reading address
+        :type addr: int
+        :param data: value to be written
+        :type data: int
+        :return: requested value
+        :rtype: int
+        """
         # Address should be translated to uppder map.
         addr_temp = 4*addr + self.DMEM_OFFSET
             
@@ -559,6 +668,14 @@ class AxisTProc64x32_x8(SocIp):
         return data
     
     def single_write(self, addr=0, data=0):
+        """
+        Writes one sample of tProc data memory using AXI access
+
+        :param addr: writing address
+        :type addr: int
+        :param data: value to be written
+        :type data: int
+        """
         # Address should be translated to uppder map.
         addr_temp = 4*addr + self.DMEM_OFFSET
             
@@ -566,6 +683,14 @@ class AxisTProc64x32_x8(SocIp):
         self.ip.write(offset=addr_temp,value=data)
         
     def load_dmem(self, buff_in, addr=0):
+        """
+        Writes tProc data memory using DMA
+
+        :param buff_in: Input buffer
+        :type buff_in: int
+        :param addr: Starting destination address
+        :type addr: int
+        """
         # Length.
         length = len(buff_in)
         
@@ -591,6 +716,16 @@ class AxisTProc64x32_x8(SocIp):
         self.mem_start_reg = 0
         
     def read_dmem(self, addr=0, length=100):
+        """
+        Reads tProc data memory using DMA
+
+        :param addr: Starting address
+        :type addr: int
+        :param length: Number of samples
+        :type length: int
+        :return: List of memory data
+        :rtype: list
+        """
         # Configure dmem arbiter.
         self.mem_mode_reg = 0
         self.mem_addr_reg = addr
@@ -613,7 +748,7 @@ class AxisTProc64x32_x8(SocIp):
     
 class AxisSwitch(SocIp):
     """
-    AxisSwitch class
+    AxisSwitch class to control Xilinx AXI-Stream switch IP
 
     :param ip: IP address
     :type ip: str
@@ -684,7 +819,7 @@ class AxisSwitch(SocIp):
         
 class PfbSoc(Overlay):
     """
-    PfbSoc class
+    PfbSoc class. This class will create all object to access system blocks
 
     :param bitfile: Name of the bitfile
     :type bitfile: str
@@ -766,7 +901,7 @@ class PfbSoc(Overlay):
     
     def get_decimated(self, ch, address=0, length=AxisAvgBuffer.BUF_MAX_LENGTH):
         """
-        Acquires data from the tProc decimated buffer
+        Acquires data from the readout decimated buffer
 
         :param ch: ADC channel
         :type ch: int
@@ -787,7 +922,7 @@ class PfbSoc(Overlay):
 
     def get_accumulated(self, ch, address=0, length=AxisAvgBuffer.AVG_MAX_LENGTH):
         """
-        Acquires data from the tProc accumulated buffer
+        Acquires data from the readout accumulated buffer
 
         :param ch: ADC channel
         :type ch: int
