@@ -4,18 +4,36 @@ import numpy as np
 import time
 
 class AveragerProgram(ASM_Program):
+    """
+    AveragerProgram class
+
+    :param cfg: Configuration dictionary
+    :type cfg: dict
+    """
     def __init__(self, cfg):
+        """
+        Constructor method
+        """
         ASM_Program.__init__(self)
         self.cfg=cfg
         self.make_program()
     
     def initialize(self):
+        """
+        Contains the initialization section of the program
+        """
         pass
     
     def body(self):
+        """
+        Contains the body section of the program
+        """
         pass
     
     def make_program(self):
+        """
+        Makes the program
+        """
         p=self
         
         rjj=14
@@ -36,7 +54,25 @@ class AveragerProgram(ASM_Program):
         p.end()        
         
     def acquire(self, soc, load_pulses=True, progress=True, debug=False):
+        """
+        Runs the program and acquires data from the accumulated buffer.
 
+        :param soc: PfbSoc object
+        :type soc: PfbSoc object
+        :param load_pulses: If true, loads pulses into the tProc
+        :type load_pulses: bool
+        :param progress: If true, displays progress bar
+        :type progress: bool
+        :param debug: If true, displays assembly code for tProc program
+        :type debug: bool
+        :returns:
+            - avg_di0 (:py:class:`list`) - list of averaged accumulated I data ADC 0
+            - avg_dq0 (:py:class:`list`) - list of averaged accumulated Q data ADC 0
+            - avg_amp0 (:py:class:`list`) - list of averaged accumulated amplitude data ADC 0
+            - avg_di1 (:py:class:`list`) - list of averaged accumulated I data ADC 1
+            - avg_dq1 (:py:class:`list`) - list of averaged accumulated Q data ADC 1
+            - avg_amp1 (:py:class:`list`) - list of averaged accumulated amplitude data ADC 1
+        """
         if load_pulses: 
             self.load_pulses(soc)
         
@@ -99,6 +135,23 @@ class AveragerProgram(ASM_Program):
         return avg_di0, avg_dq0, avg_amp0,avg_di1, avg_dq1, avg_amp1
 
     def acquire_decimated_ds(self, soc, load_pulses=True, progress=True, debug=False):
+        """
+        Runs the program and acquires data from the decimated buffer.
+
+        :param soc: PfbSoc object
+        :type soc: PfbSoc object
+        :param load_pulses: If true, loads pulses into the tProc
+        :type load_pulses: bool
+        :param progress: If true, displays progress bar
+        :type progress: bool
+        :param debug: If true, displays assembly code for tProc program
+        :type debug: bool
+        :returns:
+            - di_avg0/soft_avgs (:py:class:`list`) - list of averaged decimated I data ADC 0
+            - dq_avg0/soft_avgs (:py:class:`list`) - list of averaged decimated Q data ADC 0
+            - di_avg1/soft_avgs (:py:class:`list`) - list of averaged decimated I data ADC 1
+            - dq_avg1/soft_avgs (:py:class:`list`) - list of averaged decimated Q data ADC 1
+        """
         if self.cfg["reps"] != 1:
             print ("Warning reps is not set to 1, and this acquire method expects reps=1")
             
@@ -146,21 +199,45 @@ class AveragerProgram(ASM_Program):
         return di_avg0/soft_avgs,dq_avg0/soft_avgs, di_avg1/soft_avgs, dq_avg1/soft_avgs
     
 class RRAveragerProgram(ASM_Program):
+    """
+    RRAveragerProgram class
+
+    RRAverager is similar to RAverager. It is designed to be used for feedback experiments.
+    Acquire gathers data from both ADCs 0 and 1
+
+    :param cfg: Configuration dictionary
+    :type cfg: dict
+    """
     def __init__(self, cfg):
+        """
+        Constructor method
+        """
         ASM_Program.__init__(self)
         self.cfg=cfg
         self.make_program()
     
     def initialize(self):
+        """
+        Contains the initialization section of the program
+        """
         pass
     
     def body(self):
+        """
+        Contains the body section of the program
+        """
         pass
     
     def update(self):
+        """
+        Contains the update section of the program
+        """
         pass
     
     def make_program(self):
+        """
+        Makes the program
+        """
         p=self
         
         rcount=13
@@ -192,10 +269,34 @@ class RRAveragerProgram(ASM_Program):
         p.end()        
 
     def get_expt_pts(self):
+        """
+        Get the experiment points associated with the program
+
+        :return: Numpy array of experiment points
+        :rtype: array
+        """
         return self.cfg["start"]+np.arange(self.cfg['expts'])*self.cfg["step"]
         
     def acquire(self, soc, load_pulses=True, ReadoutPerExpt=1, Average=[0], debug=False):
+        """
+        Runs the program and acquires data from the accumulated buffer.
 
+        :param soc: PfbSoc object
+        :type soc: PfbSoc object
+        :param load_pulses: If true, loads pulses into the tProc
+        :type load_pulses: bool
+        :param ReadoutPerExpt: Number of readouts per experiment
+        :type ReadoutPerExpt: int
+        :param Average: List of lengths to average over (for instance, len(expt_pts), len(I_buffer), len(Q_buffer))
+        :type Average: list
+        :param debug: If true, displays assembly code for tProc program
+        :type debug: bool
+        :returns:
+            - expt_pts (:py:class:`list`) - list of experiment points
+            - avg_di (:py:class:`list`) - list of averaged accumulated I data (ADC 0 and 1)
+            - avg_dq (:py:class:`list`) - list of averaged accumulated Q data (ADC 0 and 1)
+            - avg_amp (:py:class:`list`) - list of averaged accumulated amplitude data (ADC 0 and 1)
+        """
         if load_pulses: 
             self.load_pulses(soc)
         
@@ -278,21 +379,45 @@ class RRAveragerProgram(ASM_Program):
             return expt_pts, avg_di, avg_dq, avg_amp
     
 class RAveragerProgram(ASM_Program):
+    """
+    RAveragerProgram class
+
+    RAverager is similar to RRAverager.
+    Acquire gathers data from both ADCs 0 and 1
+
+    :param cfg: Configuration dictionary
+    :type cfg: dict
+    """
     def __init__(self, cfg):
+        """
+        Constructor method
+        """
         ASM_Program.__init__(self)
         self.cfg=cfg
         self.make_program()
     
     def initialize(self):
+        """
+        Contains the initialization section of the program
+        """
         pass
     
     def body(self):
+        """
+        Contains the body section of the program
+        """
         pass
     
     def update(self):
+        """
+        Contains the update section of the program
+        """
         pass
     
     def make_program(self):
+        """
+        Makes the program
+        """
         p=self
         
         rcount=13
@@ -324,10 +449,35 @@ class RAveragerProgram(ASM_Program):
         p.end()        
 
     def get_expt_pts(self):
+        """
+        Get the experiment points associated with the program
+
+        :return: Numpy array of experiment points
+        :rtype: array
+        """
         return self.cfg["start"]+np.arange(self.cfg['expts'])*self.cfg["step"]
         
     def acquire(self, soc, load_pulses=True, progress=True, debug=False):
+        """
+        Runs the program and acquires data from the accumulated buffer.
 
+        :param soc: PfbSoc object
+        :type soc: PfbSoc object
+        :param load_pulses: If true, loads pulses into the tProc
+        :type load_pulses: bool
+        :param progress: If true, displays progress bar
+        :type progress: bool
+        :param debug: If true, displays assembly code for tProc program
+        :type debug: bool
+        :returns:
+            - expt_pts (:py:class:`list`) - list of experiment points
+            - avg_di0 (:py:class:`list`) - list of averaged accumulated I data ADC 0
+            - avg_dq0 (:py:class:`list`) - list of averaged accumulated Q data ADC 0
+            - amp_pts0 (:py:class:`list`) - list of averaged accumulated amplitude data ADC 0
+            - avg_di1 (:py:class:`list`) - list of averaged accumulated I data ADC 1
+            - avg_dq1 (:py:class:`list`) - list of averaged accumulated Q data ADC 1
+            - amp_pts1 (:py:class:`list`) - list of averaged accumulated amplitude data ADC 1
+        """
         if load_pulses: 
             self.load_pulses(soc)
         

@@ -6,15 +6,23 @@
 Welcome to the QICK documentation!
 =================================================
 
-This website documents the Quantum Instrumentation Controller Kit software.
+.. figure:: ../graphics/logoQICK.svg
+   :width: 70%
+   :align: center
+
+This website documents the Quantum Instrumentation Controller Kit firmware and software.
 
 Contents:
+########
 
 .. toctree::
    :maxdepth: 2
 
-   page
+   firmware
+   cheatsheet
    modules
 
+More resources:
+########
 
-
+`QICK assembly language documentation <https://www.overleaf.com/read/gbvhxhhfkghy>`_

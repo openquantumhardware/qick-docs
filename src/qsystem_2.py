@@ -18,12 +18,36 @@ from parser import *
 
 # Support functions.
 def gauss(mu=0,si=0,length=100,maxv=30000):
+    """
+    Create a numpy array containing a Gaussian function
+
+    :param mu: Mu (peak offset) of Gaussian
+    :type mu: float
+    :param sigma: Sigma (standard deviation) of Gaussian
+    :type sigma: float
+    :param length: Length of array
+    :type length: int
+    :param maxv: Maximum amplitude of Gaussian
+    :type maxv: float
+    :return: Numpy array containing a Gaussian function
+    :rtype: array
+    """
     x = np.arange(0,length)
     y = 1/(2*np.pi*si**2)*np.exp(-(x-mu)**2/si**2)
     y = y/np.max(y)*maxv
     return y
 
 def triang(length=100,maxv=30000):
+    """
+    Create a numpy array containing a triangle function
+
+    :param length: Length of array
+    :type length: int
+    :param maxv: Maximum amplitude of triangle function
+    :type maxv: float
+    :return: Numpy array containing a triangle function
+    :rtype: array
+    """
     y1 = np.arange(0,length/2)
     y2 = np.flip(y1,0)
     y = np.concatenate((y1,y2))
@@ -31,20 +55,46 @@ def triang(length=100,maxv=30000):
     return y
 
 def freq2reg(fs,f,B=16):
+    """
+    Converts frequency in MHz to format readable by B-bit DAC/ADC
+
+    :param f: frequency (MHz)
+    :type f: float
+    :param B: Resolution (bits)
+    :type B: int
+    :return: Re-formatted frequency
+    :rtype: int
+    """
     df = 2**B/fs
     f_i = f*df
     return int(f_i)
 
 def phase2reg(fi,B=16):
+    """
+    Converts frequency in MHz to format readable by B-bit DAC/ADC
+
+    :param fi: Phase (degree)
+    :type fi: float
+    :param B: Resolution (bits)
+    :type B: int
+    :return: Re-formatted phase
+    :rtype: int
+    """
     dfi = 2**B/360
     fi_i = fi*dfi
     return int(fi_i)
 
 # Some support functions
 def format_buffer(buff):
-    # Format: 
-    # -> lower 16 bits: I value.
-    # -> higher 16 bits: Q value.
+    """
+    Return the I and Q values associated with a buffer value. The lower 16 bits correspond to the I value, and the upper 16 bits correspond to the Q value.
+
+    :param buff: Buffer location
+    :type buff: int
+    :returns:
+    - dataI (:py:class:`int`) - I data value
+    - dataQ (:py:class:`int`) - Q data value
+    """
     data = buff
     dataI = data & 0xFFFF
     dataI = dataI.astype(np.int16)
@@ -54,31 +104,69 @@ def format_buffer(buff):
     return dataI,dataQ
 
 class SocIp:
+    """
+    SocIp class
+    """
     REGISTERS = {}    
     
     def __init__(self, ip, **kwargs):
+        """
+        Constructor method
+        """
         self.ip = ip
         
     def write(self, offset, s):
+        """
+        Writes a value s to a register specified by an offset value
+
+        :param offset: Offset value (register)
+        :type offset: int
+        :param s: value to be written
+        :type s: int
+        """
         self.ip.write(offset, s)
         
     def read(self, offset):
+        """
+        Reads an offset
+
+        :param offset: Offset value
+        :type offset: int
+        """
         return self.ip.read(offset)
     
     def __setattr__(self, a ,v):
+        """
+        Sets the arguments associated with a register
+
+        :param a: Register specified by an offset value
+        :type a: int
+        :param v: value to be written
+        :type v: int
+        :return: Register arguments
+        :rtype: *args object
+        """
         if a in self.__class__.REGISTERS:
             self.ip.write(4*self.__class__.REGISTERS[a], v)
         else:
             return super().__setattr__(a,v)
     
     def __getattr__(self, a):
+        """
+        Gets the arguments associated with a register
+
+        :param a: register name
+        :type a: str
+        :return: Register arguments
+        :rtype: *args object
+        """
         if a in self.__class__.REGISTERS:
             return self.ip.read(4*self.__class__.REGISTERS[a])
         else:
             return super().__getattr__(a)           
         
 class AxisSignalGenV4(SocIp):
-	"""
+    """
 	AxisSignalGenV4 class
 
     AXIS Signal Generator V4 Registers.
@@ -99,7 +187,9 @@ class AxisSignalGenV4(SocIp):
     MAX_LENGTH = 2**N*NDDS
     
     def __init__(self, ip, axi_dma, axis_switch, channel, **kwargs):
-        # Init IP.
+        """
+        Constructor method
+        """
         super().__init__(ip)
         
         # Default registers.
@@ -189,7 +279,7 @@ class AxisSignalGenV4(SocIp):
         self.rndq_reg = sel_
                 
 class AxisReadoutV2(SocIp):
-	"""
+    """
 	AxisReadoutV2 class
 
     Registers.
@@ -293,7 +383,7 @@ class AxisReadoutV2(SocIp):
         self.update()        
         
 class AxisAvgBuffer(SocIp):
-	"""
+    """
 	AxisAvgBuffer class
 
     Registers.
@@ -342,8 +432,7 @@ class AxisAvgBuffer(SocIp):
     :param channel: readout channel selection
     :type channel: int
 	"""
-    
-    REGISTERS = {'avg_start_reg'    : 0, 
+    REGISTERS = {'avg_start_reg'    : 0,
                  'avg_addr_reg'     : 1,
                  'avg_len_reg'      : 2,
                  'avg_dr_start_reg' : 3,

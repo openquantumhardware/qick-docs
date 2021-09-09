@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.mathjax',
     ## Include autosymmary
     'sphinx.ext.autosummary',
 ]
@@ -49,7 +50,7 @@ autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
-autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","rfsoc_instrument"]
+autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm"]
 
 ## Generate autodoc stubs with summaries from code
 autosummary_generate = True
