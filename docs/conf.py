@@ -50,7 +50,7 @@ autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
-autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","rfsocinstrument"]
+autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","rfsoc_instrument"]
 
 # # Mock for readthedocs
 # MOCK_MODULES = ["pynq", "xrfclk", "xrfdc"]
