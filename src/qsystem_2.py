@@ -415,33 +415,44 @@ class AxisAvgBuffer(SocIp):
         self.buf_start_reg = 0         
         
 class AxisTProc64x32_x8(SocIp):
-    # AXIS tProcessor registers.
-    # START_SRC_REG
-    # * 0 : internal start.
-    # * 1 : external start.
-    #
-    # START_REG
-    # * 0 : stop.
-    # * 1 : start.
-    #
-    # MEM_MODE_REG
-    # * 0 : AXIS Read (from memory to m0_axis)
-    # * 1 : AXIS Write (from s0_axis to memory)
-    #
-    # MEM_START_REG
-    # * 0 : Stop.
-    # * 1 : Execute operation (AXIS)
-    #
-    # MEM_ADDR_REG : starting memory address for AXIS read/write mode.
-    #
-    # MEM_LEN_REG : number of samples to be transferred in AXIS read/write mode.
-    #
-    #
-    # DMEM: The internal data memory is 2^DMEM_N samples, 32 bits each.
-    # The memory can be accessed either single read/write from AXI interface. The lower 256 Bytes are reserved for registers.
-    # The memory is then accessed in the upper section (beyond 256 bytes). Byte to sample conversion needs to be performed.
-    # The other method is to DMA in and out. Here the access is direct, so no conversion is needed.
-    # There is an arbiter to ensure data coherency and avoid blocking transactions.
+    """
+    AxisTProc64x32_x8 class
+
+    AXIS tProcessor registers:
+    START_SRC_REG
+    * 0 : internal start.
+    * 1 : external start.
+
+    START_REG
+    * 0 : stop.
+    * 1 : start.
+
+    MEM_MODE_REG
+    * 0 : AXIS Read (from memory to m0_axis)
+    * 1 : AXIS Write (from s0_axis to memory)
+
+    MEM_START_REG
+    * 0 : Stop.
+    * 1 : Execute operation (AXIS)
+
+    MEM_ADDR_REG : starting memory address for AXIS read/write mode.
+
+    MEM_LEN_REG : number of samples to be transferred in AXIS read/write mode.
+
+    DMEM: The internal data memory is 2^DMEM_N samples, 32 bits each.
+    The memory can be accessed either single read/write from AXI interface. The lower 256 Bytes are reserved for registers.
+    The memory is then accessed in the upper section (beyond 256 bytes). Byte to sample conversion needs to be performed.
+    The other method is to DMA in and out. Here the access is direct, so no conversion is needed.
+    There is an arbiter to ensure data coherency and avoid blocking transactions.
+
+    :param ip: IP address
+    :type ip: str
+    :param mem: memory address
+    :type mem: int
+    :param axi_dma: axi_dma address
+    :type axi_dma: int
+    """
+
     REGISTERS = {'start_src_reg' : 0, 
                  'start_reg' : 1, 
                  'mem_mode_reg' : 2, 
@@ -457,6 +468,9 @@ class AxisTProc64x32_x8(SocIp):
     DMEM_OFFSET = 256 
     
     def __init__(self, ip, mem, axi_dma):
+        """
+        Constructor method
+        """
         # Initialize ip
         super().__init__(ip)
         
@@ -481,6 +495,7 @@ class AxisTProc64x32_x8(SocIp):
         self.dma = axi_dma 
         
     def start_src(self,src=0):
+        ''' TO DO, down to the end of this class '''
         self.start_src_reg = src
         
     def start(self):
@@ -597,6 +612,16 @@ class AxisTProc64x32_x8(SocIp):
         return buff
     
 class AxisSwitch(SocIp):
+    """
+    AxisSwitch class
+
+    :param ip: IP address
+    :type ip: str
+    :param nslave: Number of slave interfaces
+    :type nslave: int
+    :param nmaster: Number of master interfaces
+    :type nmaster: int
+    """
     REGISTERS = {'ctrl': 0x0, 'mix_mux': 0x040}
     
     # Number of slave interfaces.
@@ -606,6 +631,9 @@ class AxisSwitch(SocIp):
     NMI = 4
     
     def __init__(self, ip, nslave=1, nmaster=4, **kwargs):
+        """
+        Constructor method
+        """
         super().__init__(ip)        
         
         # Set number of Slave/Master interfaces.
@@ -617,11 +645,22 @@ class AxisSwitch(SocIp):
         self.disable_ports()
             
     def disable_ports(self):
+        """
+        Disables ports
+        """
         for ii in range(self.NMI):
             offset = self.REGISTERS['mix_mux'] + 4*ii
             self.write(offset,0x80000000)
         
     def sel(self, mst=0, slv=0):
+        """
+        Digitally connects a master interface with a slave interface
+
+        :param mst: Master interface
+        :type mst: int
+        :param slv: Slave interface
+        :type slv: int
+        """
         # Sanity check.
         if slv>self.NSL-1:
             print("%s: Slave number %d does not exist in block." % __class__.__name__)
@@ -644,12 +683,25 @@ class AxisSwitch(SocIp):
         self.ctrl = 2     
         
 class PfbSoc(Overlay):
+    """
+    PfbSoc class
+
+    :param bitfile: Name of the bitfile
+    :type bitfile: str
+    :param force_init_clks: Whether the board clocks are re-initialized
+    :type force_init_clks: bool
+    :param ignore_version: Whether version discrepancies between PYNQ build and firmware build are ignored
+    :type ignore_version: bool
+    """
     FREF_PLL = 204.8
     fs_adc = 384*8
     fs_dac = 384*16
     
     # Constructor.
     def __init__(self, bitfile, force_init_clks=False,ignore_version=True, **kwargs):
+        """
+        Constructor method
+        """
         # Load bitstream.
         super().__init__(bitfile, ignore_version=ignore_version, **kwargs)
         
@@ -705,11 +757,26 @@ class PfbSoc(Overlay):
         
         # tProcessor, 64-bit instruction, 32-bit registes, x8 channels.
         self.tproc  = AxisTProc64x32_x8(self.axis_tproc64x32_x8_0, self.axi_bram_ctrl_0, self.axi_dma_tproc)
-        
+
     def set_all_clks(self):
+        """
+        Resets all the board clocks
+        """
         xrfclk.set_all_ref_clks(self.__class__.FREF_PLL)
     
     def get_decimated(self, ch, address=0, length=AxisAvgBuffer.BUF_MAX_LENGTH):
+        """
+        Acquires data from the tProc decimated buffer
+
+        :param ch: ADC channel
+        :type ch: int
+        :param address: Address of data
+        :type address: int
+        :param length: Buffer transfer length
+        :type length: int
+        :return: List of I and Q decimated arrays
+        :rtype: list
+        """
         if length %2 != 0:
             raise RuntimeError("Buffer transfer length must be even number.")
         if length >= AxisAvgBuffer.BUF_MAX_LENGTH:
@@ -719,6 +786,19 @@ class PfbSoc(Overlay):
         return [np.array(di,dtype=float),np.array(dq,dtype=float)]
 
     def get_accumulated(self, ch, address=0, length=AxisAvgBuffer.AVG_MAX_LENGTH):
+        """
+        Acquires data from the tProc accumulated buffer
+
+        :param ch: ADC channel
+        :type ch: int
+        :param address: Address of data
+        :type address: int
+        :param length: Buffer transfer length
+        :type length: int
+        :returns:
+            - di[:length] (:py:class:`list`) - list of accumulated I data
+            - dq[:length] (:py:class:`list`) - list of accumulated Q data
+        """
         if length >= AxisAvgBuffer.AVG_MAX_LENGTH:
             raise RuntimeError("length=%d longer than %d"%(length, AxisAvgBuffer.AVG_MAX_LENGTH))
         evenLength = length+length%2
@@ -730,6 +810,16 @@ class PfbSoc(Overlay):
     
     
     def set_nyquist(self, ch, nqz):
+        """
+        Sets DAC channel ch to operate in Nyquist zone nqz mode
+
+        :param ch: DAC channel
+        :type ch: int
+        :param nqz: Nyquist zone
+        :type nqz: int
+        :return: 'True' or '1' if the task was completed successfully
+        :rtype: bool
+        """
 #         Channel 1 : connected to Signal Generator V4, which drives DAC 228 CH0.
 #         Channel 2 : connected to Signal Generator V4, which drives DAC 228 CH1.
 #         Channel 3 : connected to Signal Generator V4, which drives DAC 228 CH2.

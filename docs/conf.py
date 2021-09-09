@@ -16,7 +16,6 @@
 import sys
 import os
 import shlex
-from unittest import mock
 
 ## Make your modules available in sys.path
 sys.path.insert(0, os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'src'))
@@ -50,12 +49,7 @@ autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
-autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc"]
-
-# Mock for readthedocs
-MOCK_MODULES = ["pynq", "xrfclk", "xrfdc"]
-for mod_name in MOCK_MODULES:
-    sys.modules[mod_name] = mock.Mock()
+autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","rfsoc_instrument"]
 
 ## Generate autodoc stubs with summaries from code
 autosummary_generate = True
