@@ -78,13 +78,17 @@ class SocIp:
             return super().__getattr__(a)           
         
 class AxisSignalGenV4(SocIp):
-    # AXIS Signal Generator V4 Registers.
-    # START_ADDR_REG
-    #
-    # WE_REG
-    # * 0 : disable writes.
-    # * 1 : enable writes.
-    #
+	"""
+	AxisSignalGenV4 class
+
+    AXIS Signal Generator V4 Registers.
+    START_ADDR_REG
+    
+    WE_REG
+    * 0 : disable writes.
+    * 1 : enable writes.
+	"""
+    
     REGISTERS = {'start_addr_reg':0, 'we_reg':1, 'rndq_reg':2}
     
     # Generics
@@ -114,6 +118,16 @@ class AxisSignalGenV4(SocIp):
         
     # Load waveforms.
     def load(self, xin_i, xin_q ,addr=0):
+        """
+        Load waveform into I,Q envelope
+
+        :param xin_i: real part of envelope
+        :type xin_i: list
+        :param xin_q: imaginary part of envelope
+        :type xin_q: list
+        :param addr: starting address
+        :type addr: int
+        """
         # Check for equal length.
         if len(xin_i) != len(xin_q):
             print("%s: I/Q buffers must be the same length." % self.__class__.__name__)
@@ -156,34 +170,52 @@ class AxisSignalGenV4(SocIp):
         self.wr_disable()        
         
     def wr_enable(self,addr=0):
+        """
+       	Enable WE reg
+        """
         self.start_addr_reg = addr
         self.we_reg = 1
         
     def wr_disable(self):
+        """
+       	Disable WE reg
+        """
         self.we_reg = 0
         
     def rndq(self, sel_):
+        """
+       	TODO: remove this function. This functionality was removed from IP block. 
+        """
         self.rndq_reg = sel_
                 
 class AxisReadoutV2(SocIp):
-    # Registers.
-    # FREQ_REG : 32-bit.
-    #
-    # PHASE_REG : 32-bit.
-    #
-    # NSAMP_REG : 16-bit.
-    #
-    # OUTSEL_REG : 2-bit.
-    # * 0 : product.
-    # * 1 : dds.
-    # * 2 : bypass.
-    #
-    # MODE_REG : 1-bit.
-    # * 0 : NSAMP.
-    # * 1 : Periodic.
-    #
-    # WE_REG : enable/disable to perform register update.    
-    #
+	"""
+	AxisReadoutV2 class
+
+    Registers.
+    FREQ_REG : 32-bit.
+    
+    PHASE_REG : 32-bit.
+    
+    NSAMP_REG : 16-bit.
+    
+    OUTSEL_REG : 2-bit.
+    * 0 : product.
+    * 1 : dds.
+    * 2 : bypass.
+    
+    MODE_REG : 1-bit.
+    * 0 : NSAMP.
+    * 1 : Periodic.
+    
+    WE_REG : enable/disable to perform register update.    
+
+    :param ip: IP address
+    :type ip: str
+    :param fs: sampling frequency in MHz
+    :type fs: float
+	"""
+    
     REGISTERS = {'freq_reg':0, 'phase_reg':1, 'nsamp_reg':2, 'outsel_reg':3, 'mode_reg': 4, 'we_reg':5}
     
     # Bits of DDS.
@@ -207,10 +239,19 @@ class AxisReadoutV2(SocIp):
         self.fs = fs
         
     def update(self):
+        """
+        Update register values
+        """
         self.we_reg = 1
         self.we_reg = 0
         
     def set_out(self,sel="product"):        
+        """
+        Select readout signal output
+
+        :param sel: select mux control
+        :type sel: int
+        """
         if sel is "product":
             self.outsel_reg = 0
         elif sel is "dds":
@@ -224,6 +265,12 @@ class AxisReadoutV2(SocIp):
         self.update()
             
     def set_freq(self, f):
+        """
+        Set frequency register
+
+        :param f: frequency in MHz
+        :type f: float
+        """
         # Sanity check.
         if f<self.fs:
             df = self.fs/2**self.B_DDS
@@ -234,6 +281,12 @@ class AxisReadoutV2(SocIp):
         self.update()
         
     def set_freq_int(self, f_int):        
+        """
+        Set frequency register (integer version)
+
+        :param f_int: frequency value register
+        :type f_int: int
+        """
         self.freq_reg = f_int
             
         # Register update.
