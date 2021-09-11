@@ -1,10 +1,6 @@
 QICK firmware
 =================================================
 
-.. figure:: ../graphics/QICK.jpg
-   :width: 100%
-   :align: center
-
 This system includes the following components:
 
 * 1 output channels connected to PMOD0-3 and triggers for Readout Block.
@@ -44,11 +40,6 @@ The updated version of the tProcessor has 4 input (AXIS SLAVE) channels, which c
 Signal Generators are organized on the array ``soc.gens``, which is composed of 7 instances. Array index 0 is connected to tProcessor Channel 1, array index 1 is connected to tProcessor Channel 2, and so on. As way of example, let's assume the user needs to create a pulse on DAC 229 CH1 and DAC 229 CH3. These are connected to Channels 5, and 7 or the tProcessor, respectively. However, let's also assume that a gaussian envelope needs to be uploaded into the corresponding signal generator. ``soc.gens[3]`` drives DAC 229 CH1, and ``soc.gens[6]`` drives DAC 229 CH3.
 
 Similarly, average and buffer inputs blocks are organized on ``soc.avg_bufs`` array, which has two instances of the Average + Buffer block. The user can access them using index 0 and 1.
-
-Driver and parser
-########
-
-To simplify the reading of the notebook and examples, the software is divided in three files: this main notebook ``qsystem_2.ipynb``, which is intended to include example code, driver file ``qsystem_2.py`` with specific drivers and system instantiation, and ``parser.py`` which separates the assembler parser.
 
 Timing
 ########

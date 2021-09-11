@@ -6,8 +6,8 @@
 Welcome to the QICK documentation!
 =================================================
 
-.. figure:: ../graphics/logoQICK.svg
-   :width: 70%
+.. figure:: ../graphics/QICK.jpg
+   :width: 100%
    :align: center
 
 This website documents the Quantum Instrumentation Controller Kit firmware and software.
