@@ -5,6 +5,5 @@ src
    :maxdepth: 4
 
    averager_program
-   parser
-   qsystem2_asm
-   qsystem_2
+   qick
+   qick_asm

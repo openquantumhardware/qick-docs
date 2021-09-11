@@ -1,7 +1,7 @@
-parser module
-=============
+qick module
+===========
 
-.. automodule:: parser
+.. automodule:: qick
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
-﻿qsystem\_2
-==========
+﻿qick
+====
 
-.. automodule:: qsystem_2
+.. automodule:: qick
 
    
    
@@ -16,6 +16,7 @@
       format_buffer
       freq2reg
       gauss
+      parse_prog
       phase2reg
       triang
    
@@ -32,7 +33,7 @@
       AxisSignalGenV4
       AxisSwitch
       AxisTProc64x32_x8
-      PfbSoc
+      Qick
       SocIp
    
    

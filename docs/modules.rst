@@ -4,7 +4,6 @@ QICK software library
 .. autosummary::
    :toctree: _autosummary
 
-   qsystem_2
-   qsystem2_asm
-   parser
+   qick
+   qick_asm
    averager_program

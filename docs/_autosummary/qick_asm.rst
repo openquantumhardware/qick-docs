@@ -1,7 +1,7 @@
-﻿qsystem2\_asm
-=============
+﻿qick\_asm
+=========
 
-.. automodule:: qsystem2_asm
+.. automodule:: qick_asm
 
    
    

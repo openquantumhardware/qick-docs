@@ -1,6 +1,10 @@
 QICK firmware
 =================================================
 
+.. figure:: ../graphics/QICK.jpg
+   :width: 100%
+   :align: center
+
 This system includes the following components:
 
 * 1 output channels connected to PMOD0-3 and triggers for Readout Block.
@@ -50,3 +54,15 @@ Timing
 ########
 
 The clock frequency of the FPGA is 384 MHz. Therefore, each clock cycle has a period of 2.6 ns.
+
+Firmware parameters
+########
+
+* Pulse memory length: 65536 per channel x2 (I,Q), i.e., 128k total
+* Decimated ADC buffer length: 1024 samples per component (I,Q), 2k total
+* Accumulated ADC buffer length: 16384 samples per component (I,Q), 32 k total
+* tProc program memory length: 8k instructions of 64 bits, 64k Bytes total
+* tProc data memory length: 4096 samples of 32 bits, 16k Bytes total
+* tProc stack size: 256 samples of 32 bits, 1k Byte total
+* Phase conversion from deg to reg: Phase resolution is 32-bit, that is :math:`\Delta \phi = 2 \pi /2^{32}` or :math:`360/2^{32}`
+* Gain is 16-bit signed [-32768,32767]

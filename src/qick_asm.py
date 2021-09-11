@@ -1,4 +1,4 @@
-from qsystem_2 import *
+from qick import *
 import numpy as np
 
 fs_adc = 384*8
@@ -211,8 +211,8 @@ class ASM_Program:
         """
         Loads pulses into the tProc
 
-        :param soc: PfbSoc object
-        :type soc: PfbSoc object
+        :param soc: Qick object
+        :type soc: Qick object
         """
         for ch,gen in zip(self.channels.keys(),soc.gens):
             for name,pulse in self.channels[ch]['pulses'].items():
