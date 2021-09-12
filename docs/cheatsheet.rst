@@ -1,40 +1,59 @@
 QICK software cheat sheet
 =================================================
 
-Python calls
+Cheat sheet
 ########
 
-``soc.tproc.single_write(addr=imm, data=variable)`` writes the value ``variable`` to the data memory ``imm``
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
 
-ASM_Program calls
-########
+   * - Python calls
+     -
+   * - ``soc.tproc.single_write(addr=imm, data=variable)``
+     - writes the value ``variable`` to the data memory address ``imm``.
 
-``p.memri(p, r, imm, 'comment')`` -- read the data memory at the address specified by ``imm`` and write the result into page ``p``, register ``r``.
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
 
-``p.regwi(p,r,value)``  -- write the ``value`` to page ``p``, register ``r``.
+   * - ASM_Program calls
+     -
+   * - ``p.memri(p, r, imm, 'comment')``
+     -  reads the data memory at the address specified by ``imm`` and writes the result into page ``p``, register ``r``.
+   * - ``p.regwi(p,r,value)``
+     - writes the ``value`` to page ``p``, register ``r``.
+   * - ``p.bitwi(p, rDst, rSrc, operation, value)``
+     - performs the bitwise ``operation`` on the contents of page ``p``, register ``rSrc`` and ``value`` and writes the result in page ``p``, register ``rDst``.  ``rSrc`` and ``rDst`` may be the same or different.
+   * - ``p.bitw(p, rDst, rSrc1, operation, rSrc2``
+     - performs the bitwise ``operation`` on two source registers (``rSrc1`` and ``rSrc2``) and puts the result in the destination register ``rDst``, where all three registers are on the same page ``p``.
+   * - ``p.seti(channel, p, rSrc, time)``
+     - takes the value at page ``p``, register ``rSrc`` and sends it to ``channel`` that the specified ``time``.
+   * - ``p.label(labelName)``
+     - marks this location in the program, for use by the ``loopz`` and ``condj`` commands.
+   * - ``p.set(channel, p, ra, rb,rc,rd,re,time)``
+     - sends the values on page ``p`` registers ``ra``, ``rb``, ``rc``, ``rd``, ``re`` to ``channel`` at ``time``. The registers ``ra`` through ``re`` contain, in order, 16-bit values of frequency, phase, address, gain, and ( ``nsamp`` , ``outsel`` , ``mode`` , ``stdysel`` ).
+   * - ``p.sync(p,r)``
+     - synchronizes the internal time offset to the value specified by page ``p``,register ``r``.
+   * - ``p.synci(p,timeOffset)``
+     - synchronizes the internal time offset by ``timeOffset``.
 
-``p.bitwi(p, rDst, rSrc, operation, value)`` -- performs the bitwise ``operation`` on the contents of page ``p``, register ``rSrc`` and ``value`` and write the result in page ``p``, register ``rDst``.  ``rSrc`` and ``rDst`` may be the same or register.
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
 
-``p.bitw(p, rDst, rSrc1, operation, rSrc2`` -- performs the bitwise ``operation`` on two source registers (``rSrc1`` and ``rSrc2``) and put the result in the destination register ``rDst``, where all three registers are on the same page ``p``.
-
-``p.seti(channel, p, rSrc, time)`` -- take the value at page ``p``, register ``rSrc`` and send it to ``channel`` that the specifified ``time``.
-
-``p.label(labelName)`` -- mark this location in the program, for use by the ``loopz`` and ``condj`` commands.
-
-``p.set(channel, p, ra, rb,rc,rd,re,time)`` -- sent the values on page ``p`` registers ``ra``, ``rb``, ``rc``, ``rd``, ``re`` to ``channel`` at ``time``. The registers ``ra`` through ``re`` contain, in order, 16-bit values of frequency, phase, address, gain, and (nsamp,outsel, mode, stdysel)
-
-``p.sync(p,r)`` -- synchronize internal time offset to the value specified by page ``p``,register ``r``
-
-``p.synci(p,timeOffset)`` -- synchronize internal time offset by ``timeOffset``
-
-ASM_Program bitwise operations
-########
-
-* ``<<`` -- shift bits left by ``value`` bits, ignores ``rSrc``
-* ``|`` -- or
-* ``&`` -- and
-* ``^`` -- exclusive or
-* ``~`` -- not ``value``, ignores ``rSrc``
+   * - ASM_Program bitwise operations
+     -
+   * - ``<<``
+     - shifts bits left by ``value`` bits, ignores ``rSrc``
+   * - ``|``
+     - or
+   * - ``&``
+     - and
+   * - ``^``
+     - exclusive or
+   * - ``~``
+     - not ``value``, ignores ``rSrc``
 
 tProcessor register information
 ########

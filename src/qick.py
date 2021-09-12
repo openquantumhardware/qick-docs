@@ -1,3 +1,7 @@
+"""
+The lower-level driver for the QICK library. Contains classes for interfacing with the SoC and a function for parsing the tProc assembly language.
+"""
+
 import os
 import pynq
 from pynq import Overlay, allocate
@@ -988,7 +992,7 @@ class Qick(Overlay):
     tProc_stack_size_bytes_tot = tProc_stack_len_bytes*tProc_stack_samples
     phase_resolution_bits = 32
     gain_resolution_signed_bits = 16
-    
+
     # Constructor.
     def __init__(self, bitfile, force_init_clks=False,ignore_version=True, **kwargs):
         """

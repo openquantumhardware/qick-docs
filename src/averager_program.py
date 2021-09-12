@@ -1,3 +1,6 @@
+"""
+Several helper classes for writing qubit experiments.
+"""
 from qick_asm import *
 from tqdm import tqdm_notebook as tqdm
 import numpy as np
@@ -5,7 +8,7 @@ import time
 
 class AveragerProgram(ASM_Program):
     """
-    AveragerProgram class
+    AveragerProgram class, for qubit experiments that don't sweep over a variable.
 
     :param cfg: Configuration dictionary
     :type cfg: dict
@@ -200,10 +203,8 @@ class AveragerProgram(ASM_Program):
     
 class RRAveragerProgram(ASM_Program):
     """
-    RRAveragerProgram class
-
-    RRAverager is similar to RAverager. It is designed to be used for feedback experiments.
-    Acquire gathers data from both ADCs 0 and 1
+    RRAveragerProgram class. RRAverager is similar to RAverager, as it is for qubit experiments that sweep over a variable (whose value is stored in expt_pts).
+    RRAveragerProgram is designed to be used for feedback experiments. Acquire gathers data from both ADCs 0 and 1.
 
     :param cfg: Configuration dictionary
     :type cfg: dict
@@ -380,10 +381,8 @@ class RRAveragerProgram(ASM_Program):
     
 class RAveragerProgram(ASM_Program):
     """
-    RAveragerProgram class
-
-    RAverager is similar to RRAverager.
-    Acquire gathers data from both ADCs 0 and 1
+    RAveragerProgram class, for qubit experiments that sweep over a variable (whose value is stored in expt_pts).
+    Acquire gathers data from both ADCs 0 and 1.
 
     :param cfg: Configuration dictionary
     :type cfg: dict

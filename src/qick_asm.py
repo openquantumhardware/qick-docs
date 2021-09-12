@@ -1,3 +1,6 @@
+"""
+The higher-level driver for the QICK library. Contains an tProc assembly language wrapper class and auxiliary functions.
+"""
 from qick import *
 import numpy as np
 
@@ -535,17 +538,17 @@ class ASM_Program:
     #should change behavior to only change bits that are specified
     def marker(self, t, t1 = 0, t2 = 0, t3 = 0, t4=0, adc1=0, adc2=0, rp=0, r_out = 31, short=True):
         """
-        Triggers the ADC(s) for a specified amount of time
+        Triggers the ADC(s) at a specified time t
 
         :param t: The number of clock ticks at which point the pulse starts
         :type t: int
-        :param t1: t1
+        :param t1: t1 - value of an external pin connected to the PMOD
         :type t1: int
-        :param t2: t2
+        :param t2: t2 - value of an external pin connected to the PMOD
         :type t2: int
-        :param t3: t3
+        :param t3: t3 - value of an external pin connected to the PMOD
         :type t3: int
-        :param t4: t4
+        :param t4: t4 - value of an external pin connected to the PMOD
         :type t4: int
         :param adc1: 1 if ADC channel 0 is triggered; 0 otherwise.
         :type adc1: bool
@@ -567,7 +570,7 @@ class ASM_Program:
     
     def trigger_adc(self,adc1=0,adc2=0, adc_trig_offset=270, t=0):
         """
-        Triggers the ADC(s)
+        Triggers the ADC(s) at a specified time t+adc_trig_offset
 
         :param adc1: 1 if ADC channel 0 is triggered; 0 otherwise.
         :type adc1: bool
@@ -700,7 +703,7 @@ class ASM_Program:
                     
     def label(self, name):
         """
-        Label the instruction by its position in the program list
+        Label the instruction by its position in the program list. The loopz and condj commands use this label information.
 
         :param name: Instruction name
         :type name: str
