@@ -538,17 +538,18 @@ class ASM_Program:
     #should change behavior to only change bits that are specified
     def marker(self, t, t1 = 0, t2 = 0, t3 = 0, t4=0, adc1=0, adc2=0, rp=0, r_out = 31, short=True):
         """
-        Triggers the ADC(s) at a specified time t
+        Triggers the ADC(s) at a specified time t and also sends trigger values to 4 PMOD pins for syncing a scope trigger.
+        Channel 0 of the tProc is connected to triggers/PMODs. E.g. if t3=1 PMOD0_2 goes high.
 
         :param t: The number of clock ticks at which point the pulse starts
         :type t: int
-        :param t1: t1 - value of an external pin connected to the PMOD
+        :param t1: t1 - value of an external pin connected to the PMOD (PMOD0_0)
         :type t1: int
-        :param t2: t2 - value of an external pin connected to the PMOD
+        :param t2: t2 - value of an external pin connected to the PMOD (PMOD0_1)
         :type t2: int
-        :param t3: t3 - value of an external pin connected to the PMOD
+        :param t3: t3 - value of an external pin connected to the PMOD (PMOD0_2)
         :type t3: int
-        :param t4: t4 - value of an external pin connected to the PMOD
+        :param t4: t4 - value of an external pin connected to the PMOD (PMOD0_3)
         :type t4: int
         :param adc1: 1 if ADC channel 0 is triggered; 0 otherwise.
         :type adc1: bool
