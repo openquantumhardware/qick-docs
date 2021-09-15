@@ -22,7 +22,7 @@ import re
 #from parser import *
 
 # Support functions.
-def gauss(mu=0,si=0,length=100,maxv=30000):
+def gauss(mu=0,si=25,length=100,maxv=30000):
     """
     Create a numpy array containing a Gaussian function
 

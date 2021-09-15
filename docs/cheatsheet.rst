@@ -1,7 +1,7 @@
-QICK software cheat sheet
+QICK software quick reference
 =================================================
 
-Cheat sheet
+Quick reference
 ########
 
 .. list-table::
