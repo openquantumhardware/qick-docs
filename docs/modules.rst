@@ -7,3 +7,5 @@ QICK software library
    qick
    qick_asm
    averager_program
+   helpers
+   parser

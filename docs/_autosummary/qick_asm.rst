@@ -31,7 +31,7 @@
 
    .. autosummary::
    
-      ASM_Program
+      QickProgram
    
    
 

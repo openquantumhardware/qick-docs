@@ -1,7 +1,6 @@
 """
 The higher-level driver for the QICK library. Contains an tProc assembly language wrapper class and auxiliary functions.
 """
-from qick import *
 import numpy as np
 
 fs_adc = 384*8
@@ -11,7 +10,7 @@ fs_proc=384
 
 def freq2reg(f):
     """
-    Converts frequency in MHz to format readable by tProc DAC
+    Converts frequency in MHz to tProc DAC register value.
 
     :param f: frequency (MHz)
     :type f: float
@@ -25,21 +24,21 @@ def freq2reg(f):
 
 def freq2reg_adc(f):
     """
-    Converts frequency in MHz to format readable by tProc ADC
+    Converts frequency in MHz to tProc ADC register value.
 
     :param f: frequency (MHz)
     :type f: float
     :return: Re-formatted frequency
     :rtype: int
     """
-    B=16
+    B=32
     df = 2**B/fs_adc
     f_i = f*df
     return int(f_i)    
 
 def reg2freq(r):
     """
-    Converts frequency from format readable by tProc DAC to MHz
+    Converts frequency from format readable by tProc DAC to MHz.
 
     :param r: frequency in tProc DAC format
     :type r: float
@@ -50,30 +49,30 @@ def reg2freq(r):
 
 def reg2freq_adc(r):
     """
-    Converts frequency from format readable by tProc ADC to MHz
+    Converts frequency from format readable by tProc ADC to MHz.
 
     :param r: frequency in tProc ADC format
     :type r: float
     :return: Re-formatted frequency in MHz
     :rtype: float
     """
-    return r*fs_adc/2**16
+    return r*fs_adc/2**32
 
 def adcfreq(f):
     """
-    Takes a frequency and casts it to an (even) valid ADC DDS frequency
+    Takes a frequency and casts it to an (even) valid ADC DDS frequency.
 
     :param f: frequency (MHz)
     :type f: float
     :return: Re-formatted frequency
     :rtype: int
     """
-    reg=freq2reg_adc(f)
-    return reg2freq_adc(reg+(reg%2))
+    reg = freq2reg_adc(f)
+    return reg2freq_adc(reg)  # +(reg%2))
 
 def cycles2us(cycles):
     """
-    Converts FPGA clock cycles to microseconds
+    Converts tProc clock cycles to microseconds.
 
     :param cycles: Number of FPGA clock cycles
     :type cycles: int
@@ -84,7 +83,7 @@ def cycles2us(cycles):
 
 def us2cycles(us):
     """
-    Converts microseconds to FPGA clock cycles
+    Converts microseconds to integer number of tProc clock cycles.
 
     :param cycles: Number of microseconds
     :type cycles: float
@@ -95,7 +94,7 @@ def us2cycles(us):
 
 def deg2reg(deg):
     """
-    Converts degrees to format readable by the tProc
+    Converts degrees into phase register values; numbers greater than 360 will effectively be wrapped.
 
     :param deg: Number of degrees
     :type deg: float
@@ -106,7 +105,7 @@ def deg2reg(deg):
 
 def reg2deg(reg):
     """
-    Converts degrees in format readable by the tProc to degrees
+    Converts phase register values into degrees.
 
     :param cycles: Re-formatted number of degrees
     :type cycles: int
@@ -116,10 +115,12 @@ def reg2deg(reg):
     return reg*360/2**32
 
 
-class ASM_Program:
+class QickProgram:
     """
-    ASM_Program is a python wrapper class for the tProc assembly language .asm
+    QickProgram is a Python representation of the QickSoc processor assembly program. It can be used to compile simple assembly programs and also contains macros to help make it easy to configure and schedule pulses.
     """
+
+    #Instruction set for the tproc describing how to automatically generate methods for these instructions
     instructions = {'pushi': {'type':"I", 'bin': 0b00010000, 'fmt': ((0,53),(1,41),(2,36), (3,0)), 'repr': "{0}, ${1}, ${2}, {3}"},
                     'popi':  {'type':"I", 'bin': 0b00010001, 'fmt': ((0,53),(1,41)), 'repr': "{0}, ${1}"},
                     'mathi': {'type':"I", 'bin': 0b00010010, 'fmt': ((0,53),(1,41),(2,36), (3,46), (4, 0)), 'repr': "{0}, ${1}, ${2}, {3}, {4}"},
@@ -148,12 +149,14 @@ class ASM_Program:
                     'setb': {'type':"R", 'bin': 0b01011000, 'fmt': ((0,53),(2,36),(1,31)), 'repr': "{0}, ${1}, ${2}"}
                     }
 
+    #op codes for math and bitwise operations
     op_codes = {">": 0b0000, ">=": 0b0001, "<": 0b0010, "<=": 0b0011, "==": 0b0100, "!=": 0b0101, 
                 "+": 0b1000, "-": 0b1001, "*": 0b1010,
                 "&": 0b0000, "|": 0b0001, "^": 0b0010, "~": 0b0011, "<<": 0b0100, ">>": 0b0101,
                 "upper": 0b1010, "lower": 0b0101
                }
-    
+
+    #To make it easier to configure pulses these special registers are reserved for each channels pulse configuration
     special_registers = [{"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
                          {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28},
                          {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
@@ -162,7 +165,8 @@ class ASM_Program:
                          {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28},
                          {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
                         ]   
-    
+
+    #delay in clock cycles between marker channel (ch0) and siggen channels (due to pipeline delay)
     trig_offset=25
     
     def __init__(self, cfg=None):
@@ -177,7 +181,7 @@ class ASM_Program:
     
     def add_pulse(self, ch, name, style, idata=None, qdata=None, length=None):
         """
-        Adds a pulse to a memory location associated with a tProc DAC channel
+        Adds a pulse to the pulse library within the program.
 
         :param ch: DAC channel
         :type ch: int
@@ -212,7 +216,7 @@ class ASM_Program:
         
     def load_pulses(self, soc):
         """
-        Loads pulses into the tProc
+        Loads pulses that were added using add_pulse into the SoC's signal generator memories.
 
         :param soc: Qick object
         :type soc: Qick object
@@ -226,7 +230,7 @@ class ASM_Program:
 
     def ch_page(self, ch):
         """
-        Gets tProc page associated with channel
+        Gets tProc register page associated with channel.
 
         :param ch: DAC channel
         :type ch: int
@@ -237,7 +241,7 @@ class ASM_Program:
     
     def sreg(self, ch, name):
         """
-        Gets tProc special register number associated with channel
+        Gets tProc special register number associated with a channel and register name.
 
         :param ch: DAC channel
         :type ch: int
@@ -251,7 +255,7 @@ class ASM_Program:
 
     def set_pulse_registers (self, ch, freq=None, phase=None, addr=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None, t=None):
         """
-        Set pulse registers
+        A macro to set (optionally) the pulse parameters including frequency, phase, address of pulse, gain, stdysel, mode register (compiled from length and other flags), outsel, length, and schedule time.
 
         :param ch: DAC channel
         :type ch: int
@@ -265,7 +269,7 @@ class ASM_Program:
         :type gain: float
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -300,7 +304,7 @@ class ASM_Program:
     
     def const_pulse(self, ch, name=None, freq=None, phase=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None, t='auto', play=True):
         """
-        Plays a constant pulse specified by the user
+        Schedule and (optionally) play a constant pulse, can autoschedule this based on previous pulses.
 
         :param ch: DAC channel
         :type ch: int
@@ -314,7 +318,7 @@ class ASM_Program:
         :type gain: float
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -352,7 +356,7 @@ class ASM_Program:
      
     def arb_pulse(self, ch, name=None, freq=None, phase=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None , t= 'auto', play=True):
         """
-        Plays an arbitrary pulse specified by the user
+        Schedule and (optionally) play an arbitrary pulse, can autoschedule this based on previous pulses.
 
         :param ch: DAC channel
         :type ch: int
@@ -366,7 +370,7 @@ class ASM_Program:
         :type gain: float
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -399,7 +403,8 @@ class ASM_Program:
 
     def flat_top_pulse(self, ch, name=None, freq=None, phase=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None , t= 'auto', play=True):
         """
-        Plays a flat-top pulse specified by the user
+        Schedule and (optionally) play an a flattop pulse with arbitrary ramps, can autoschedule based on previous pulses
+        To use these pulses one should use add_pulse to add the ramp waveform which should go from 0 to maxamp and back down to zero with the up and down having the same length, the first half will be used as the ramp up and the second half will be used as the ramp down.
 
         :param ch: DAC channel
         :type ch: int
@@ -413,7 +418,7 @@ class ASM_Program:
         :type gain: float
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -457,7 +462,7 @@ class ASM_Program:
         
     def pulse(self, ch, name=None, freq=None, phase=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None , t= 'auto', play=True):
         """
-        Plays a pulse specified by the user
+        Overall pulse class which will select the correct function to call based on the 'style' parameter of the named pulse.
 
         :param ch: DAC channel
         :type ch: int
@@ -471,7 +476,7 @@ class ASM_Program:
         :type gain: float
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -496,7 +501,7 @@ class ASM_Program:
         
     def align(self):
         """
-        Align the internal time offset of all DACs against the maximum time offset of any of the DACs
+        Sets all of the last times for each channel included in chs to the latest time in any of the channels.
         """
         max_t=max([self.dac_ts[ch] for ch in range(1,9)])
         for ch in range(1,9):
@@ -504,7 +509,9 @@ class ASM_Program:
             
     def safe_regwi(self, rp, reg, imm, comment=None):
         """
-        Write to a tProc register (safely)
+        Due to the way the instructions are setup immediate values can only be 30bits before not loading properly.
+        This comes up mostly when trying to regwi values into registers, especially the _frequency_ and _phase_ pulse registers.
+        safe_regwi can be used wherever one might use regwi and will detect if the value is >2**30 and if so will break it into two steps, putting in the first 30 bits shifting it over and then adding the last two.
 
         :param rp: Register page
         :type rp: int
@@ -525,7 +532,7 @@ class ASM_Program:
             
     def sync_all(self, t=0):
         """
-        Synchronize internal time offset of tProc and all DACs by offset time t
+        Aligns and syncs all channels with additional time t.
 
         :param t: The time offset in clock ticks
         :type t: int
@@ -538,7 +545,7 @@ class ASM_Program:
     #should change behavior to only change bits that are specified
     def marker(self, t, t1 = 0, t2 = 0, t3 = 0, t4=0, adc1=0, adc2=0, rp=0, r_out = 31, short=True):
         """
-        Triggers the ADC(s) at a specified time t and also sends trigger values to 4 PMOD pins for syncing a scope trigger.
+        Sets the value of the marker bits at time t. This triggers the ADC(s) at a specified time t and also sends trigger values to 4 PMOD pins for syncing a scope trigger.
         Channel 0 of the tProc is connected to triggers/PMODs. E.g. if t3=1 PMOD0_2 goes high.
 
         :param t: The number of clock ticks at which point the pulse starts
@@ -571,7 +578,7 @@ class ASM_Program:
     
     def trigger_adc(self,adc1=0,adc2=0, adc_trig_offset=270, t=0):
         """
-        Triggers the ADC(s) at a specified time t+adc_trig_offset
+        Triggers the ADC(s) at a specified time t+adc_trig_offset.
 
         :param adc1: 1 if ADC channel 0 is triggered; 0 otherwise.
         :type adc1: bool
@@ -591,7 +598,7 @@ class ASM_Program:
         
     def convert_immediate(self, val):
         """
-        Convert the register value to ensure that it is positive and not too large.
+        Convert the register value to ensure that it is positive and not too large. Throws an error if you ever try to use a value greater than 2**31 as an immediate value.
 
         :param val: Original register value
         :type val: int
@@ -607,9 +614,9 @@ class ASM_Program:
         
     def compile_instruction(self,inst, debug = False):
         """
-        Compile the Python instruction into a binary number
+        Converts an assembly instruction into a machine bytecode.
 
-        :param inst: Python instruction
+        :param inst: Assembly instruction
         :type inst: dict
         :param debug: If True, debug mode is on
         :type debug: bool
@@ -654,7 +661,7 @@ class ASM_Program:
 
     def compile(self, debug=False):
         """
-        Compile the program into a list of binary instructions
+        Compiles program to machine code.
 
         :param debug: If True, debug mode is on
         :type debug: bool
@@ -665,11 +672,11 @@ class ASM_Program:
    
     def get_mode_code(self, phrst, stdysel, mode, outsel, length):
         """
-        Gets the mode code of the instruction in binary
+        Creates mode code for the mode register in the set command, by setting flags and adding the pulse length.
 
         :param phrst: If 1, it resets the phase coherent accumulator
         :type phrst: bool
-        :param stdysel: Selects what value is output continuously by the signal generator after the gereration of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
+        :param stdysel: Selects what value is output continuously by the signal generator after the generation of a pulse. If 0, it is the last calculated sample of the pulse. If 1, it is a zero value.
         :type stdysel: bool
         :param mode: Selects whether the output is periodic or one-shot. If 0, it is one-shot. If 1, it is periodic.
         :type mode: bool
@@ -704,7 +711,7 @@ class ASM_Program:
                     
     def label(self, name):
         """
-        Label the instruction by its position in the program list. The loopz and condj commands use this label information.
+        Add line number label to the labels dictionary. This labels the instruction by its position in the program list. The loopz and condj commands use this label information.
 
         :param name: Instruction name
         :type name: str
@@ -713,7 +720,7 @@ class ASM_Program:
 
     def comment(self, comment):
         """
-        Comment
+        Dummy function used for comments.
 
         :param comment: Comment
         :type comment: str
@@ -722,7 +729,7 @@ class ASM_Program:
 
     def __getattr__(self, a):
         """
-        Gets the arguments associated with a program instruction
+        Uses instructions dictionary to automatically generate methods for the standard instruction set.
 
         :param a: Instruction name
         :type a: str
@@ -736,25 +743,25 @@ class ASM_Program:
 
     def hex(self):
         """
-        Gets compiled program in hex format
+        Returns hex representation of program as string.
 
         :return: Compiled program in hex format
-        :rtype: hex
+        :rtype: str
         """
         return "\n".join([format(mc, '#018x') for mc in self.compile()])
     
     def bin(self):
         """
-        Gets compiled program in binary format
+        Returns binary representation of program as string.
 
         :return: Compiled program in binary format
-        :rtype: bin
+        :rtype: str
         """
         return "\n".join([format(mc, '#066b') for mc in self.compile()])
 
     def asm(self):
         """
-        Print the asm file
+        Returns assembly representation of program as string, should be compatible with the parse_prog from the parser module.
 
         :return: asm file
         :rtype: str
@@ -780,7 +787,7 @@ class ASM_Program:
     
     def compare_program(self,fname):
         """
-        Compare compiled program with another program (which is located in file fname)
+        For debugging purposes to compare binary compilation of parse_prog with the compile.
 
         :param fname: File the comparison program is stored in
         :type fname: str
@@ -801,7 +808,7 @@ class ASM_Program:
 
     def __repr__(self):
         """
-        Return the asm file associated with the class as a string
+        Print as assembly by default.
 
         :return: The asm file associated with the class
         :rtype: str
@@ -819,7 +826,7 @@ class ASM_Program:
     
     def __exit__(self,type, value, traceback):
         """
-        Exit the runtime context related to this object
+        Exit the runtime context related to this object.
 
         :param type: type of error
         :type type: type

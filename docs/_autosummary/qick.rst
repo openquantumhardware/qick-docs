@@ -14,11 +14,6 @@
    .. autosummary::
    
       format_buffer
-      freq2reg
-      gauss
-      parse_prog
-      phase2reg
-      triang
    
    
 
@@ -33,7 +28,7 @@
       AxisSignalGenV4
       AxisSwitch
       AxisTProc64x32_x8
-      Qick
+      QickSoc
       SocIp
    
    
