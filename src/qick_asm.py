@@ -67,14 +67,14 @@ def adcfreq(f):
     :return: Re-formatted frequency
     :rtype: int
     """
-    reg = freq2reg_adc(f)
-    return reg2freq_adc(reg)  # +(reg%2))
+    reg=freq2reg_adc(f)
+    return reg2freq_adc(reg+(reg%2))
 
 def cycles2us(cycles):
     """
     Converts tProc clock cycles to microseconds.
 
-    :param cycles: Number of FPGA clock cycles
+    :param cycles: Number of tProc clock cycles
     :type cycles: int
     :return: Number of microseconds
     :rtype: float
@@ -87,7 +87,7 @@ def us2cycles(us):
 
     :param cycles: Number of microseconds
     :type cycles: float
-    :return: Number of FPGA clock cycles
+    :return: Number of tProc clock cycles
     :rtype: int
     """
     return int(us*fs_proc)
@@ -119,7 +119,6 @@ class QickProgram:
     """
     QickProgram is a Python representation of the QickSoc processor assembly program. It can be used to compile simple assembly programs and also contains macros to help make it easy to configure and schedule pulses.
     """
-
     #Instruction set for the tproc describing how to automatically generate methods for these instructions
     instructions = {'pushi': {'type':"I", 'bin': 0b00010000, 'fmt': ((0,53),(1,41),(2,36), (3,0)), 'repr': "{0}, ${1}, ${2}, {3}"},
                     'popi':  {'type':"I", 'bin': 0b00010001, 'fmt': ((0,53),(1,41)), 'repr': "{0}, ${1}"},
@@ -155,17 +154,17 @@ class QickProgram:
                 "&": 0b0000, "|": 0b0001, "^": 0b0010, "~": 0b0011, "<<": 0b0100, ">>": 0b0101,
                 "upper": 0b1010, "lower": 0b0101
                }
-
+    
     #To make it easier to configure pulses these special registers are reserved for each channels pulse configuration
-    special_registers = [{"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
-                         {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28},
-                         {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
-                         {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28},
-                         {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
-                         {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28},
-                         {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21},
+    special_registers = [{"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21, "length":22}, # ch1 - pg 0
+                          {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28, "length":29}, # ch2 - pg 0
+                          {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21, "length":22}, # ch3 - pg 1
+                          {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28, "length":29}, # ch4 - pg 1
+                          {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21, "length":22}, # ch5 - pg 2
+                          {"freq": 23 , "phase":24,"addr":25,"gain":26, "mode":27, "t":28, "length":29}, # ch6 - pg 3
+                          {"freq": 16 , "phase":17,"addr":18,"gain":19, "mode":20, "t":21, "length":22}, # ch7 - pg 4
                         ]   
-
+    
     #delay in clock cycles between marker channel (ch0) and siggen channels (due to pipeline delay)
     trig_offset=25
     
@@ -203,7 +202,7 @@ class QickProgram:
         if idata is not None and (len(idata) % 16 !=0 or len(idata) % 16 !=0):
             raise RuntimeError("Error: Pulse length must be integer multiple of 16")
         
-        if style=="arb" or style=="flat_top":
+        if style=="arb":
             self.channels[ch]["pulses"][name]={"idata":idata, "qdata":qdata, "addr":self.channels[ch]['addr'], "length":len(idata)//16, "style": style}
             self.channels[ch]["addr"]+=len(idata)
         elif style=="flat_top":
@@ -441,6 +440,7 @@ class QickProgram:
             pinfo['gain']=gain
             
         rp, r_freq,r_phase,r_addr, r_gain, r_mode, r_t = p.set_pulse_registers(ch, freq=freq, phase=phase, addr=addr, gain=gain, phrst=phrst, stdysel=stdysel, mode=mode, outsel=outsel, length=length, t=t)
+        p.regwi(rp, p.sreg(ch, "length"), pinfo["length"])
         
         if play:
             if t is not None:
@@ -453,13 +453,15 @@ class QickProgram:
                 
                 p.set_pulse_registers(ch, addr=pinfo["addr"], phase=phase, gain=pinfo['gain'], length=ramp_length, outsel=0, t=t) #play ramp up part of pulse
                 p.set (ch, rp, r_freq, r_phase, r_addr, r_gain, r_mode, r_t, f"ch = {ch}, out = ${r_freq},${r_addr},${r_gain},${r_mode} @t = ${r_t}")
-                p.set_pulse_registers(ch, addr=pinfo["addr"], phase=phase, gain=pinfo['gain']//2, length=pinfo['length'], outsel=1, t=t) #play ramp up part of pulse
+                
+                p.set_pulse_registers(ch, addr=pinfo["addr"], phase=phase, gain=pinfo['gain']//2, length=0, outsel=1, t=t) #play ramp up part of pulse
+                p.math(rp,r_mode, r_mode, "+", p.sreg(ch, "length"),"+")
                 p.set (ch, rp, r_freq, r_phase, r_addr, r_gain, r_mode, r_t, f"ch = {ch}, out = ${r_freq},${r_addr},${r_gain},${r_mode} @t = ${r_t}")
                 p.set_pulse_registers(ch, addr=pinfo["addr"]+ramp_length, phase=phase, gain=pinfo['gain'], length=ramp_length, outsel=0, t=t+ramp_length+pinfo['length']) #play ramp down part of pulse with length delay
                 p.set (ch, rp, r_freq, r_phase, r_addr, r_gain, r_mode, r_t, f"ch = {ch}, out = ${r_freq},${r_addr},${r_gain},${r_mode} @t = ${r_t}")
 
             p.dac_ts[ch]=t+pinfo['length']+2*ramp_length
-        
+              
     def pulse(self, ch, name=None, freq=None, phase=None, gain=None, phrst=None, stdysel=None, mode=None, outsel=None, length=None , t= 'auto', play=True):
         """
         Overall pulse class which will select the correct function to call based on the 'style' parameter of the named pulse.
@@ -499,7 +501,7 @@ class QickProgram:
         return f(ch, name=name, freq=freq, phase=phase, gain=gain, phrst=phrst, stdysel=stdysel, mode=mode, outsel=outsel, length=length , t= t, play=play)
         
         
-    def align(self):
+    def align(self, chs):
         """
         Sets all of the last times for each channel included in chs to the latest time in any of the channels.
         """
@@ -543,7 +545,7 @@ class QickProgram:
             self.dac_ts=[0]*len(self.dac_ts) #zeros(len(self.dac_ts),dtype=uint16)
 
     #should change behavior to only change bits that are specified
-    def marker(self, t, t1 = 0, t2 = 0, t3 = 0, t4=0, adc1=0, adc2=0, rp=0, r_out = 31, short=True):
+    def marker(self, t, t1 = 0, t2 = 0, t3 = 0, t4=0, adc1=0, adc2=0, rp=0, r_out = 31, short=True): 
         """
         Sets the value of the marker bits at time t. This triggers the ADC(s) at a specified time t and also sends trigger values to 4 PMOD pins for syncing a scope trigger.
         Channel 0 of the tProc is connected to triggers/PMODs. E.g. if t3=1 PMOD0_2 goes high.
@@ -569,12 +571,13 @@ class QickProgram:
         :param short: If 1, plays a short marker pulse that is 5 clock ticks long
         :type short: bool
         """
-        out= (adc2 << 15) |(adc1 << 14) | (t4 << 3) | (t3 << 2) | (t2 << 1) | (t1 << 0) 
+        out= (adc2 << 15) |(adc1 << 14) | (t4 << 3) | (t3 << 2) | (t2 << 1) | (t1 << 0)
         self.regwi (rp, r_out, out, 'out = 0b{out:>016b}')
         self.seti (0, rp, r_out, t, f'ch =0 out = ${r_out} @t = {t}')
         if short:
             self.regwi (rp, r_out, 0, 'out = 0b{out:>016b}')
             self.seti (0, rp, r_out, t+5, f'ch =0 out = ${r_out} @t = {t}')
+    
     
     def trigger_adc(self,adc1=0,adc2=0, adc_trig_offset=270, t=0):
         """
@@ -589,7 +592,7 @@ class QickProgram:
         :param t: The number of clock ticks at which point the ADC trigger starts
         :type t: int
         """
-        out= (adc2 << 15) |(adc1 << 14) 
+        out= (adc2 << 15) |(adc1 << 14)
         r_out=31
         self.regwi (0, r_out, out, f'out = 0b{out:>016b}')
         self.seti (0, 0, r_out, t+adc_trig_offset, f'ch =0 out = ${r_out} @t = {t}')

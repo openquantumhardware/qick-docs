@@ -7,10 +7,10 @@ import xrfclk
 import xrfdc
 import numpy as np
 from pynq import Xlnk
-from pynq import Overlay
 from pynq.lib import AxiGPIO
 import time
 from parser import *
+import bitfile_path
 
 # Some support functions
 def format_buffer(buff):
@@ -95,16 +95,15 @@ class SocIp:
         
 class AxisSignalGenV4(SocIp):
     """
-	AxisSignalGenV4 class
+    AxisSignalGenV4 class
 
     AXIS Signal Generator V4 Registers.
     START_ADDR_REG
-    
+
     WE_REG
     * 0 : disable writes.
     * 1 : enable writes.
-	"""
-    
+    """
     REGISTERS = {'start_addr_reg':0, 'we_reg':1, 'rndq_reg':2}
     
     # Generics
@@ -189,58 +188,59 @@ class AxisSignalGenV4(SocIp):
         
     def wr_enable(self,addr=0):
         """
-       	Enable WE reg
+           Enable WE reg
         """
         self.start_addr_reg = addr
         self.we_reg = 1
         
     def wr_disable(self):
         """
-       	Disable WE reg
+           Disable WE reg
         """
         self.we_reg = 0
         
     def rndq(self, sel_):
         """
-       	TODO: remove this function. This functionality was removed from IP block. 
+           TODO: remove this function. This functionality was removed from IP block.
         """
         self.rndq_reg = sel_
                 
 class AxisReadoutV2(SocIp):
     """
-	AxisReadoutV2 class
+    AxisReadoutV2 class
 
     Registers.
     FREQ_REG : 32-bit.
-    
+
     PHASE_REG : 32-bit.
-    
+
     NSAMP_REG : 16-bit.
-    
+
     OUTSEL_REG : 2-bit.
     * 0 : product.
     * 1 : dds.
     * 2 : bypass.
-    
+
     MODE_REG : 1-bit.
     * 0 : NSAMP.
     * 1 : Periodic.
-    
-    WE_REG : enable/disable to perform register update.    
+
+    WE_REG : enable/disable to perform register update.
 
     :param ip: IP address
     :type ip: str
     :param fs: sampling frequency in MHz
     :type fs: float
-	"""
-    
+    """
     REGISTERS = {'freq_reg':0, 'phase_reg':1, 'nsamp_reg':2, 'outsel_reg':3, 'mode_reg': 4, 'we_reg':5}
     
     # Bits of DDS.
     B_DDS = 32
     
     def __init__(self, ip, fs, **kwargs):
-        # Init IP.
+        """
+        Constructor method
+        """
         super().__init__(ip)
         
         # Default registers.
@@ -263,7 +263,7 @@ class AxisReadoutV2(SocIp):
         self.we_reg = 1
         self.we_reg = 0
         
-    def set_out(self,sel="product"):        
+    def set_out(self,sel="product"):
         """
         Select readout signal output
 
@@ -298,7 +298,7 @@ class AxisReadoutV2(SocIp):
         # Register update.
         self.update()
         
-    def set_freq_int(self, f_int):        
+    def set_freq_int(self, f_int):
         """
         Set frequency register (integer version)
 
@@ -312,40 +312,40 @@ class AxisReadoutV2(SocIp):
         
 class AxisAvgBuffer(SocIp):
     """
-	AxisAvgBuffer class
+    AxisAvgBuffer class
 
     Registers.
     AVG_START_REG
     * 0 : Averager Disabled.
     * 1 : Averager Enabled (started by external trigger).
-    
+
     AVG_ADDR_REG : start address to write results.
-    
+
     AVG_LEN_REG : number of samples to be added.
-    
+
     AVG_DR_START_REG
     * 0 : do not send any data.
     * 1 : send data using m0_axis.
-    
+
     AVG_DR_ADDR_REG : start address to read data.
-    
+
     AVG_DR_LEN_REG : number of samples to be read.
-    
+
     BUF_START_REG
     * 0 : Buffer Disabled.
     * 1 : Buffer Enabled (started by external trigger).
-    
+
     BUF_ADDR_REG : start address to write results.
-    
+
     BUF_LEN_REG : number of samples to be buffered.
-    
+
     BUF_DR_START_REG
     * 0 : do not send any data.
     * 1 : send data using m1_axis.
-    
+
     BUF_DR_ADDR_REG : start address to read data.
-    
-    BUF_DR_LEN_REG : number of samples to be read.    
+
+    BUF_DR_LEN_REG : number of samples to be read.
 
     :param ip: IP address
     :type ip: str
@@ -359,8 +359,8 @@ class AxisAvgBuffer(SocIp):
     :type switch_buf: str
     :param channel: readout channel selection
     :type channel: int
-	"""
-    REGISTERS = {'avg_start_reg'    : 0,
+    """
+    REGISTERS = {'avg_start_reg'    : 0, 
                  'avg_addr_reg'     : 1,
                  'avg_len_reg'      : 2,
                  'avg_dr_start_reg' : 3,
@@ -383,7 +383,9 @@ class AxisAvgBuffer(SocIp):
     BUF_MAX_LENGTH = 2**N_BUF
     
     def __init__(self, ip, axi_dma_avg, switch_avg, axi_dma_buf, switch_buf, channel, **kwargs):
-        # Init IP.
+        """
+        Constructor method
+        """
         super().__init__(ip)
         
         # Default registers.
@@ -602,7 +604,6 @@ class AxisTProc64x32_x8(SocIp):
     :param axi_dma: axi_dma address
     :type axi_dma: int
     """
-
     REGISTERS = {'start_src_reg' : 0, 
                  'start_reg' : 1, 
                  'mem_mode_reg' : 2, 
@@ -621,7 +622,6 @@ class AxisTProc64x32_x8(SocIp):
         """
         Constructor method
         """
-        # Initialize ip
         super().__init__(ip)
         
         # Program memory.
@@ -667,7 +667,10 @@ class AxisTProc64x32_x8(SocIp):
         
     def load_qick_program(self, prog, debug= False):
         """
-        prog -- the QickProgram to load
+        :param prog: the QickProgram to load
+        :type prog: str
+        :param debug: Debug option
+        :type debug: bool
         """
         for ii,inst in enumerate(prog.compile(debug=debug)):
             dec_low = inst & 0xffffffff
@@ -729,7 +732,7 @@ class AxisTProc64x32_x8(SocIp):
         :return: requested value
         :rtype: int
         """
-        # Address should be translated to uppder map.
+        # Address should be translated to upper map.
         addr_temp = 4*addr + self.DMEM_OFFSET
             
         # Read data.
@@ -746,7 +749,7 @@ class AxisTProc64x32_x8(SocIp):
         :param data: value to be written
         :type data: int
         """
-        # Address should be translated to uppder map.
+        # Address should be translated to upper map.
         addr_temp = 4*addr + self.DMEM_OFFSET
             
         # Write data.
@@ -898,16 +901,16 @@ class QickSoc(Overlay):
     :param ignore_version: Whether version discrepancies between PYNQ build and firmware build are ignored
     :type ignore_version: bool
     """
-    FREF_PLL = 204.8
-    fs_adc = 384*8
-    fs_dac = 384*16
+    FREF_PLL = 204.8 # MHz
+    fs_adc = 384*8 # MHz
+    fs_dac = 384*16 # MHz
     pulse_mem_len_IQ = 65536 # samples for I, Q
     ADC_decim_buf_len_IQ = 1024 # samples for I, Q
     ADC_accum_buf_len_IQ = 16384 # samples for I, Q
-    tProc_instruction_len_bytes = 8
+    tProc_instruction_len_bytes = 8 
     tProc_prog_mem_samples = 8000
     tProc_prog_mem_size_bytes_tot = tProc_instruction_len_bytes*tProc_prog_mem_samples
-    tProc_data_len_bytes = 4
+    tProc_data_len_bytes = 4 
     tProc_data_mem_samples = 4096
     tProc_data_mem_size_bytes_tot = tProc_data_len_bytes*tProc_data_mem_samples
     tProc_stack_len_bytes = 4
@@ -915,15 +918,17 @@ class QickSoc(Overlay):
     tProc_stack_size_bytes_tot = tProc_stack_len_bytes*tProc_stack_samples
     phase_resolution_bits = 32
     gain_resolution_signed_bits = 16
-
+    
     # Constructor.
-    def __init__(self, bitfile, force_init_clks=False,ignore_version=True, **kwargs):
+    def __init__(self, bitfile=None, force_init_clks=False,ignore_version=True, **kwargs):
         """
         Constructor method
         """
         # Load bitstream.
-        super().__init__(bitfile, ignore_version=ignore_version, **kwargs)
-        
+        if bitfile==None:
+            super().__init__(bitfile_path(), ignore_version=ignore_version, **kwargs)
+        else:
+            super().__init__(bitfile, ignore_version=ignore_version, **kwargs)
         # Configure PLLs if requested.
         if force_init_clks:
             self.set_all_clks()
@@ -976,7 +981,7 @@ class QickSoc(Overlay):
         
         # tProcessor, 64-bit instruction, 32-bit registes, x8 channels.
         self.tproc  = AxisTProc64x32_x8(self.axis_tproc64x32_x8_0, self.axi_bram_ctrl_0, self.axi_dma_tproc)
-
+        
     def set_all_clks(self):
         """
         Resets all the board clocks
@@ -1032,6 +1037,16 @@ class QickSoc(Overlay):
         """
         Sets DAC channel ch to operate in Nyquist zone nqz mode
 
+        Channel 1 : connected to Signal Generator V4, which drives DAC 228 CH0.
+        Channel 2 : connected to Signal Generator V4, which drives DAC 228 CH1.
+        Channel 3 : connected to Signal Generator V4, which drives DAC 228 CH2.
+        Channel 4 : connected to Signal Generator V4, which drives DAC 229 CH0.
+        Channel 5 : connected to Signal Generator V4, which drives DAC 229 CH1.
+        Channel 6 : connected to Signal Generator V4, which drives DAC 229 CH2.
+        Channel 7 : connected to Signal Generator V4, which drives DAC 229 CH3.
+        tiles: DAC 228: 0, DAC 229: 1
+        channels: CH0: 0, CH1: 1, CH2: 2, CH3: 3
+
         :param ch: DAC channel
         :type ch: int
         :param nqz: Nyquist zone
@@ -1039,15 +1054,6 @@ class QickSoc(Overlay):
         :return: 'True' or '1' if the task was completed successfully
         :rtype: bool
         """
-#         Channel 1 : connected to Signal Generator V4, which drives DAC 228 CH0.
-#         Channel 2 : connected to Signal Generator V4, which drives DAC 228 CH1.
-#         Channel 3 : connected to Signal Generator V4, which drives DAC 228 CH2.
-#         Channel 4 : connected to Signal Generator V4, which drives DAC 229 CH0.
-#         Channel 5 : connected to Signal Generator V4, which drives DAC 229 CH1.
-#         Channel 6 : connected to Signal Generator V4, which drives DAC 229 CH2.
-#         Channel 7 : connected to Signal Generator V4, which drives DAC 229 CH3.
-#         tiles: DAC 228: 0, DAC 229: 1
-#         channels: CH0: 0, CH1: 1, CH2: 2, CH3: 3
         ch_info={1: (0,0), 2: (0,1), 3: (0,2), 4: (1,0), 5: (1,1), 6: (1, 2), 7: (1,3)}
     
         rf=self.usp_rf_data_converter_0

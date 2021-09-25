@@ -1,6 +1,8 @@
 """
 Support functions.
 """
+import numpy as np
+
 def gauss(mu=0,si=25,length=100,maxv=30000):
     """
     Create a numpy array containing a Gaussian function
