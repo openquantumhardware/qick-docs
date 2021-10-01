@@ -19,7 +19,7 @@ Getting started with QICK
 
    * If you have a ZCU111 board and you want to configure it as a QICK board, follow `the quick start guide on our Github repository <https://github.com/openquantumhardware/qick/tree/main/quick_start>`_.
 
-   * After you configure your board, you can test it with `our library of loopback demos <https://github.com/openquantumhardware/qick/tree/main/pynq_demos>`_.
+   * After you configure your board, you can test it with `our library of loopback demos <https://github.com/openquantumhardware/qick/tree/main/qick_demos>`_.
 
    * The source code for the QICK software library is available `at this link <https://github.com/openquantumhardware/qick/tree/main/qick_lib>`_. To learn more about the QICK software, see the following documentation.
 

@@ -42,7 +42,7 @@ Quick reference
    :widths: 50 50
    :header-rows: 1
 
-   * - ASM_Program bitwise operations
+   * - QickProgram bitwise operations
      -
    * - ``<<``
      - shifts bits left by ``value`` bits, ignores ``rSrc``
