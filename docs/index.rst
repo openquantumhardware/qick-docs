@@ -15,7 +15,7 @@ The Quantum Instrumentation Control Kit (QICK for short) is a Xilinx RFSoC-based
 Getting started with QICK
 ########
 
-   * First, for a global overview of the QICK and its capabilities, read `our technical paper introducing the QICK <https://www.arxiv.org>`_.
+   * First, for a global overview of the QICK and its capabilities, read `our instrumentation paper introducing the QICK <https://arxiv.org/abs/2110.00557>`_.
 
    * If you have a ZCU111 board and you want to configure it as a QICK board, follow `the quick start guide on our Github repository <https://github.com/openquantumhardware/qick/tree/main/quick_start>`_.
 
