@@ -9,12 +9,6 @@
 
    
    
-   .. rubric:: Functions
-
-   .. autosummary::
-   
-      format_buffer
-   
    
 
    
@@ -23,12 +17,19 @@
 
    .. autosummary::
    
+      AbsSignalGen
       AxisAvgBuffer
+      AxisConstantIQ
+      AxisPFBReadoutV2
       AxisReadoutV2
-      AxisSignalGenV4
+      AxisSgInt4V1
+      AxisSgMux4V1
+      AxisSignalGen
       AxisSwitch
       AxisTProc64x32_x8
+      MrBufferEt
       QickSoc
+      RFDC
       SocIp
    
    

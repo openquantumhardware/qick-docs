@@ -9,3 +9,5 @@ src
    parser
    qick
    qick_asm
+   rfboard
+   streamer

@@ -9,3 +9,5 @@ QICK software library
    averager_program
    helpers
    parser
+   rfboard
+   streamer

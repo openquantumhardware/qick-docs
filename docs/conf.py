@@ -50,7 +50,10 @@ autodoc_default_options = {
     'members': True,
     'show-inheritance': True,
 }
-autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","bitfile_path"]
+autodoc_mock_imports = ["pynq", "xrfclk", "xrfdc","tqdm","bitfile_path",
+                        "parserdemo","streamerdemo","qick_asmdemo","helpersdemo","json","collections",
+                        "numpy","os","time","multiprocessing","queue","re","qickdemo"]
+
 
 ## Generate autodoc stubs with summaries from code
 autosummary_generate = True

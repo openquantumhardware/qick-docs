@@ -13,12 +13,21 @@
 
    .. autosummary::
    
+      DRAG
       gauss
+      get_fclk
+      trace_net
       triang
    
    
 
    
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      BusParser
    
    
 

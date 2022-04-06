@@ -14,6 +14,7 @@
    .. autosummary::
    
       parse_prog
+      parse_to_bin
    
    
 
